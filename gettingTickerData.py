@@ -35,7 +35,7 @@ while True:
             continue
 
 
-    if ticker == "KDNY":
+    if ticker == "MLCO":
         running = True
     
     
