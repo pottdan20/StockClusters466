@@ -11,7 +11,11 @@ class DataPoint:
         self.percent = percent 
         self.volatility = volatility 
         self.cluster = None
+        self.p_zScore = None
+        self.v_zScore = None
+
     
+
     def __repr__(self):
         return '(' + self.ticker + ', ' + str(round(self.percent, 3)) + ', ' + str(round(self.volatility, 3)) + ', ' + str(self.cluster) + ')'
 
@@ -25,15 +29,51 @@ class Clusterer:
     def __init__(self, k, in_file): 
         self.k = k
         self.training_data = []
-        self.centers = [None for i in range(0, k)] # Index is cluster number, value is data point of center        
+        self.centers = [None for i in range(0, k)] # Index is cluster number, value is data point of center  
+        self.percentMean = None
+        self.volatilityMean = None 
+        self.percentSD = None
+        self.volatilitySD = None     
         self.read_data(in_file)
+        self.set_standanrd_deviations()
+        self.set_point_zScores()
+        
+    def set_point_zScores(self):
+        for point in self.training_data:
+            point.p_zScore = (point.percent - self.percentMean)/self.percentSD
+            point.v_zScore = (point.volatility - self.volatilityMean) / self.volatilitySD
+    
+    def set_standanrd_deviations(self): #sets the standard deviation for percent and volatility
+        percentDiffSum = 0
+        volatilityDiffSum = 0
+        count = 0
+        for point in self.training_data:
+            count += 1
+            percentDiffSum += (point.percent - self.percentMean) ** 2
+            volatilityDiffSum += (point.volatility - self.volatilityMean) ** 2
+        self.percentSD = math.sqrt(percentDiffSum / (count -1))
+        self.volatilitySD = math.sqrt(volatilityDiffSum / (count -1))
+
+
+        
+             
 
     # Reads data file into a list of DataPoint objects
+    
     def read_data(self, in_file): 
         data_file = open(in_file, 'r')
+        percentSum = 0
+        volatilitySum = 0
+        count = 0
         for line in data_file: 
             line_lst = line.split(" ")
-            self.training_data.append(DataPoint(line_lst[0], float(line_lst[1])*5, float(line_lst[2])))
+            self.training_data.append(DataPoint(line_lst[0], float(line_lst[1]), float(line_lst[2])))
+            percentSum += float(line_lst[1])
+            volatilitySum += float(line_lst[2])
+            count += 1
+
+        self.percentMean = percentSum / count
+        self.volatilityMean = volatilitySum / count
         data_file.close()
 
     # Generates k random centers in range of the training data min and max 
@@ -57,7 +97,12 @@ class Clusterer:
             name = "CENTER_" + str(i)
             percent = random.randint(int(min_percent), int(max_percent))
             volatility = random.randint(int(min_volatility), int(max_volatility))
-            self.centers[i] = DataPoint(name, percent, volatility)
+            p_zScore = (percent - self.percentMean)/self.percentSD
+            v_zScore = (volatility - self.volatilityMean) / self.volatilitySD
+            to_add = DataPoint(name, percent, volatility)
+            to_add.p_zScore = (percent - self.percentMean)/self.percentSD
+            to_add.v_zScore = (volatility - self.volatilityMean)/self.volatilitySD
+            self.centers[i] = to_add
 
         
         '''for i in range(0, self.k): 
