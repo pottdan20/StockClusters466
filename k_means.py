@@ -50,12 +50,17 @@ class Clusterer:
         for point in self.training_data:
             count += 1
             percentDiffSum += (point.percent - self.percentMean) ** 2
-            volatilityDiffSum += (point.volatility - self.volatilityMean) ** 2
+            tempVDiff = (point.volatility - self.volatilityMean) ** 2
+            if not math.isnan(tempVDiff):
+                volatilityDiffSum += tempVDiff
         self.percentSD = math.sqrt(percentDiffSum / (count -1))
         self.volatilitySD = math.sqrt(volatilityDiffSum / (count -1))
 
 
-        
+    def print_zScores(self):
+        for i in range (0,100):
+            p = self.training_data[i]
+            print(p.ticker + "    p_zScore: " + str(p.p_zScore)   )     
              
 
     # Reads data file into a list of DataPoint objects
@@ -69,11 +74,15 @@ class Clusterer:
             line_lst = line.split(" ")
             self.training_data.append(DataPoint(line_lst[0], float(line_lst[1]), float(line_lst[2])))
             percentSum += float(line_lst[1])
-            volatilitySum += float(line_lst[2])
+            tempV = float(line_lst[2])
+            if not math.isnan(tempV):
+                volatilitySum += tempV
+
             count += 1
 
         self.percentMean = percentSum / count
         self.volatilityMean = volatilitySum / count
+        print(volatilitySum)
         data_file.close()
 
     # Generates k random centers in range of the training data min and max 
@@ -119,15 +128,39 @@ class Clusterer:
         for i in range(0, len(self.centers)): 
             curr_cluster_center = self.centers[i] 
             # Use Euclidean distance metric 
-            curr_dist = math.pow((curr_cluster_center.percent - data_point.percent), 2) + \
-                math.pow((curr_cluster_center.volatility - data_point.volatility), 2)
+            curr_dist = math.pow((curr_cluster_center.p_zScore - data_point.p_zScore), 2) + \
+                math.pow((curr_cluster_center.v_zScore - data_point.v_zScore), 2)
             if curr_dist < min_dist: 
                 min_dist = curr_dist
                 min_cluster = i 
         # Assign data point to the closest cluster
         data_point.cluster = min_cluster 
     
-    def adjust_centers(self): 
+    def adjust_centers(self): #with z-scores
+        done_clustering = False  
+        percent_sums = [0 for x in range(0, len(self.centers))]
+        volatility_sums = [0 for x in range(0, (len(self.centers)))]
+        counts = [0 for x in range(0, len(self.centers))]                
+        for data_point in self.training_data: 
+            percent_sums[data_point.cluster] += data_point.percent 
+            volatility_sums[data_point.cluster] += data_point.volatility 
+            counts[data_point.cluster] += 1
+        for cluster_number in range(0, len(self.centers)):             
+            if counts[cluster_number] != 0: 
+                percent_mean = percent_sums[cluster_number] / counts[cluster_number]
+                volatility_mean = volatility_sums[cluster_number] / counts[cluster_number]
+                if self.centers[cluster_number].percent == percent_mean and \
+                    self.centers[cluster_number].volatility == volatility_mean: 
+                    done_clustering = True 
+                else: 
+                    done_clustering = False
+                    self.centers[cluster_number].percent = percent_mean 
+                    self.centers[cluster_number].volatility = volatility_mean
+                    self.centers[cluster_number].p_zScore = (percent_mean - self.percentMean)/self.percentSD
+                    self.centers[cluster_number].v_zScore = (volatility_mean - self.volatilityMean)/self.volatilitySD
+        return done_clustering 
+      
+    def adjust_centers_without_sd(self): #this was original functionality before we clustered by zScores
         done_clustering = False  
         percent_sums = [0 for x in range(0, len(self.centers))]
         volatility_sums = [0 for x in range(0, (len(self.centers)))]
@@ -149,7 +182,8 @@ class Clusterer:
                     self.centers[cluster_number].percent = percent_mean 
                     self.centers[cluster_number].volatility = volatility_mean
         return done_clustering 
-      
+    
+
     def cluster(self):  
         keep_going = True 
         
