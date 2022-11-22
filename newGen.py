@@ -5,7 +5,7 @@ toWrite = ""
 startDate = "2021-01-01"
 endDate = "2021-12-31"
 
-writeToFile = open("data2021_2.txt", "a")
+writeToFile = open("data2021.txt", "a")
 
 def getTickerStartDateData(t):
     data = si.get_data(t, start_date = startDate, end_date = endDate, index_as_date = True, interval="1d")
