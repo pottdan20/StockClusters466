@@ -13,8 +13,8 @@ def getTickerStartDateData(t):
     lows = data.get("low")
     startDateOpen = data.get("open")[0]
     endDateClose = data.get("close")[-1]
-    percentGain = (endDateClose - startDateOpen) / startDateOpen
-    variance = 0
+    percentGain = (endDateClose - startDateOpen) / startDateOpen # (selling price - initial price) / (initial price) First Feature
+    variance = 0 
     global toWrite
     for day in range(0, len(data)):
         dayPercentVar = (highs[day] - lows[day]) / highs[day]
