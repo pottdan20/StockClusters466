@@ -18,6 +18,9 @@ silhouette_analysis.py (this one takes a little bit)
 Other Alterations for K-Means: 
 - You can turn scaling on and off by commenting out line 54 in k_means.py 
 - You can turn removing outliers off by commenting out line 55 in k_means.py 
+- You can run with different seed choices: 
+       - Random seed choice: self.initialize_centers_random()
+       - Random data points: self.initialize_centers_with_data()
 - NOTE: changing these may lead to errors in either silhouette or elbow (sometimes you get divide by zero error becuase of empty clusters, still haven't decided what to do with them) 
 
 Sources: 
