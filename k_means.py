@@ -1,6 +1,7 @@
 import math 
 import random 
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 
 """
@@ -40,7 +41,8 @@ class kMeansClusterer:
         self.percentMean = None 
         self.volatilityMean = None 
         self.percentSD = None
-        self.volatilitySD = None    
+        self.volatilitySD = None   
+        self.clusters = None # Hashmap: Key = cluster number, Value = list of DataPoints in cluster  
         # SETUP 
         # Read the data file into training_data list and find percent and volitility means 
         self.read_data(in_file)
@@ -51,7 +53,7 @@ class kMeansClusterer:
         # Use scaling and remove outliers 
         self.use_scaling() 
         self.remove_outliers()              
-        # Choose centers 
+        # Choose centers
         self.initialize_centers_random()
         #self.initialize_centers_with_data()
         
@@ -228,48 +230,75 @@ class kMeansClusterer:
     Performs K-means clustering until the centers converge 
     Displays the clusters on a graph 
     """        
-    def cluster(self):  
+    def cluster(self): 
         keep_going = True 
         while keep_going:
             for data_point in self.training_data: 
                 self.assign_to_cluster(data_point)
             if self.adjust_centers() == True: 
                 keep_going = False
+            #self.display_clusters()
+        # Store data points in each cluster 
+        self.clusters = {i:[] for i in range(0, self.k)} # Key = cluster number, Value = list of DataPoints in cluster 
+        for data_point in self.training_data:
+            # Store points in each cluster
+            self.clusters[data_point.cluster].append(data_point)
+                                                    
                 
-                
+    """
+    Displays clusters on a scatterplot using matplot lib 
+    MAKE THIS CONVERT BACK FROM Z_SCORE VALUE
+    """
+    def display_clusters(self): 
+        colors = ["green", "blue", "red", "orange", "purple", "pink", "grey", "yellow", "brown", "violet"] 
+        clusters = {} # Key = cluster number, Value = list of DataPoints in cluster 
+        for data_point in self.training_data: 
+            # Store points in each cluster 
+            if data_point.cluster not in clusters: 
+                clusters[data_point.cluster] = []
+            clusters[data_point.cluster].append(data_point)
+        for cluster in clusters: 
+            data_points = clusters[cluster]
+            percents = []
+            volatilities = []
+            for data_point in data_points: 
+                percents.append(data_point.percent)
+                volatilities.append(data_point.volatility)
+            plt.scatter(percents, volatilities, color=colors[cluster], alpha = 0.5)
+            
+        center_percents = []
+        center_volatilites = []
+        for center in self.centers: 
+            center_percents.append(center.percent)
+            center_volatilites.append(center.volatility)
+        plt.xlabel('Percent Gain')
+        plt.ylabel('Volatility')
+        plt.title('k-Means Cluster Analysis Results')
+        plt.scatter(center_percents, center_volatilites, color = "black", marker="^")
+        #legend_elements = [Line2D([0], [0], marker='o', color='w', label='Cluster {}'.format(i), markerfacecolor=colors[i], markersize=5) \
+            #for i in range(0, self.k)]
+        #plt.legend(handles=legend_elements, loc="upper right")
+        plt.show()
+    
+    
+    """
+    Returns a hash map representing all clusters: 
+          Key = cluster number
+          Value = list of DataPoints in cluster 
+    """    
+    def get_clusters(self): 
+        clusters = {i:[] for i in range(0, self.k)} # Key = cluster number, Value = list of DataPoints in cluster 
+        for data_point in self.training_data:
+            # Store points in each cluster
+            clusters[data_point.cluster].append(data_point)
+        return clusters
+            
+            
+# Runs k-means given the number of clusters and the stock data file      
 def main(): 
-    my_clusterer = kMeansClusterer(6, "data2021.txt")
-    #my_clusterer.initialize_centers_random()   
-    #my_clusterer.initialize_centers_with_data()
+    my_clusterer = kMeansClusterer(3, "data2021.txt")
     my_clusterer.cluster()
-    
-    colors = ["red", "green", "blue", "pink", "purple", "orange", "yellow", "grey"]
-    clusters = {}
-    for data_point in my_clusterer.training_data:
-        if data_point.cluster not in clusters: 
-            clusters[data_point.cluster] = []
-        clusters[data_point.cluster].append(data_point)
-    for cluster in clusters: 
-        data_points = clusters[cluster]
-        p = []
-        v = []            
-        for data_point in data_points: 
-            p.append(data_point.percent)
-            v.append(data_point.volatility)
-        plt.scatter(p, v, color = colors[data_point.cluster], alpha = 0.5)            
-    centersp = []
-    centersv = []
-    for center in my_clusterer.centers: 
-        centersp.append(center.percent)
-        centersv.append(center.volatility)
-    plt.scatter(centersp, centersv, color = "black", alpha = 0.5)            
-    plt.show()        
-
+    my_clusterer.display_clusters()
         
-
-
-
-    my_clusterer.cluster()
-    
 if __name__ == "__main__":    
     main()
