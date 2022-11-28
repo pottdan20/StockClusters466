@@ -19,3 +19,9 @@ Other Alterations for K-Means:
 - You can turn scaling on and off by commenting out line 54 in k_means.py 
 - You can turn removing outliers off by commenting out line 55 in k_means.py 
 - NOTE: changing these may lead to errors in either silhouette or elbow (sometimes you get divide by zero error becuase of empty clusters, still haven't decided what to do with them) 
+
+Sources: 
+- Example: https://algotrading101.com/learn/cluster-analysis-guide/
+- Finding optimal K: https://www.analyticsvidhya.com/blog/2021/05/k-mean-getting-the-optimal-number-of-clusters/
+      - https://medium.com/analytics-vidhya/how-to-determine-the-optimal-k-for-k-means-708505d204eb
+      - https://en.wikipedia.org/wiki/Silhouette_(clustering)
