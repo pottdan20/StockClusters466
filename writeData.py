@@ -81,8 +81,14 @@ while True:
             getTickerStartDateData(ticker)
         except:
             continue
-    if ticker == "DWAS":
+    if ticker == "DPCSU":
         running = True
+    if ticker == "DWAS":
+        #running = True
+        break
+print("writing")
+copy = toWrite
+writeToFile.write(copy)
 
 f.close()
 writeToFile.close()
