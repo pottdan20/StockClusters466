@@ -4,7 +4,7 @@ import math
 
 """
 Finds the optimal k for k-means clustering using silhouette analysis 
-The silhouette coefficient is a measure of how similar a data point is within a cluster (cohesion)
+The silhouette coefficient (of a single point) is a measure of how similar a data point is within a cluster (cohesion)
 compared to other clusters (separation)
 
 Algorithm: 
@@ -31,18 +31,20 @@ class silhouetteMethod():
         silhouette_coefficient = -2 
         best_k = 0 
         for k in range(self.k_start, self.k_end+1):     
-            self.clusterer = k_means.kMeansClusterer(k, "data2021.txt")
+            self.clusterer = k_means.kMeansClusterer(k, "newData.txt")
             self.clusterer.cluster() # Cluster the data into k clusters
-            #self.clusterer.display_clusters()
             self.clusters = self.clusterer.clusters # Get the points in each cluster 
             avg_silhouette = self.calculate_avg_silhouette() # Find the avg. silhouette for current clustering 
+            # Keep track of max avg. silhouette (and corresponding k)
             if avg_silhouette > silhouette_coefficient: 
                 silhouette_coefficient = avg_silhouette 
                 best_k = k
             silhouette_values.append(avg_silhouette)
-            print("AVG SILHOUETTE: " + str(avg_silhouette))
+            print("K = " + str(k) + ", " + "AVG SILHOUETTE: " + str(avg_silhouette))
         print("SILHOUETTE COEFFICIENT: " + str(silhouette_coefficient))        
         print("OPTIMAL K: " + str(best_k))
+        print()
+        # Plot silhouette graph
         plt.plot(k_values, silhouette_values)
         plt.xlabel("K")
         plt.ylabel("Average Silhouette Value")
@@ -128,15 +130,12 @@ class silhouetteMethod():
                 min_avg = min(curr_avg, min_avg) # update min avg and move on to next cluster
         return min_avg 
                                
-                                    
-# WHAT IS THE SILHOUETTE SCORE OF A CLUSTER THAT DOES NOT HAVE ANY POINTS IN IT 
-# !!! FIGURE OUT WHAT TO DO FOR EMPTY CLUSTERS
 
 # Performs silhouette analysis to find the optimal k by testing k in a given range 
 def main(): 
-    k_finder = silhouetteMethod(2, 10)
+    print()
+    k_finder = silhouetteMethod(2, 8)
     k_finder.find_optimal_k()
 
 if __name__ == "__main__": 
     main()
-    

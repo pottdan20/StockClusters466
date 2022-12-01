@@ -1,28 +1,27 @@
-yahoo fin documentation:   http://theautomatic.net/yahoo_fin-documentation/#methods
+Stock Clustering:
 
-https://algotrading101.com/learn/cluster-analysis-guide/
+k_means.py
+- Runs k-means clustering given a value for k
+- To run, manually change the value of k in the code (in main)
+- Then run: python3 k_means.py
 
+elbow_method.py
+- Runs elbow method for determining optimal k
+- To run, manually change the inputs to elbowFinder in main to change the range for k
+- Then run: python3 elbow_method.py
 
+silhouette_analysis.py (this one takes a little bit)
+- Runs silhouette analysis for determing optimal k
+- To run, manually change the inputs to silhouetteMethod in main to change the range fork
+- Then run: python3 silhouette_analysis.py
 
-K-Means 
- 1. Read all data from file and create data point: dataPoint(ticker, percent, volitility) into a list 
- 2. Create k empty clusters ((list of lists) or (list of maps) ) where each element is a cluster center 
- 3. Choose starting point for each cluster center 
- 4. Iterate: 
-      - assign each data point to closest center 
-      - recalculate centers as mean of points in cluster 
- 5. Stop on convergence: centers don't change, or when error is less than some value, or after fixed number of iterations 
+get_sectors.py
+- Gets sectors for all tickers 
+- Also displays sector information for each cluster 
+- To run: python3 get_sectors.py
 
- Problems to look at: 
-  - seed choice: 
-      - Random selection 
-      - Farthest points heuristic 
-      - Try out multiple cluster centers 
-
-Functions to Implement: 
- - func. read_training_data() -> reads data file and creates data points 
- - func. assign_to_centers() -> assigns each data point to the closest center 
- - func. adjust_centers() -> readjusts centers using all data points 
- - func. distance() -> computes distance between center and point (use euclidean)
- - func. display_clusters() -> shows visual representation of clusters 
- - func. find_optimal_k() -> runs k_means for k = 1...n and graphs each (then chooses optimal k)
+Other Alterations for K-Means:
+- You can turn scaling on and off by commenting out line 54 in k_means.py
+- You can run with different seed choices: 
+     - Random seed choice: self.initialize_centers_random() 
+     - Random data points: self.initialize_centers_with_data()

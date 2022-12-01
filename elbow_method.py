@@ -1,6 +1,7 @@
 import k_means 
 from matplotlib import pyplot as plt
 import math
+plt.style.use('ggplot')
 
 """
 Finds the optimal k for k-means clustering using the elbow curve method 
@@ -21,9 +22,9 @@ class elbowFinder:
         k_values = [i for i in range(self.k_start, self.k_end+1)] # Values of K (used for x-axis of graph)
         # For each k, compute the sum of squared errors 
         for k in range(self.k_start, self.k_end+1): 
-            self.clusterer = k_means.kMeansClusterer(k, "data2021.txt")
+            # Run k-means for that k 
+            self.clusterer = k_means.kMeansClusterer(k, "newData.txt")
             self.clusterer.cluster()
-            #self.clusterer.display_clusters()
             error = self.calculate_SSE()
             SSEs.append(error)
         # Graph elbow curve 
@@ -52,7 +53,7 @@ class elbowFinder:
     
 # Uses the elbow curve method to find the optimal k (up to interpretation)
 def main(): 
-    my_elbow_finder = elbowFinder(2, 10)
+    my_elbow_finder = elbowFinder(2, 12)
     my_elbow_finder.find_optimal_k()
 
 if __name__ == "__main__": 

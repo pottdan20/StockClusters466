@@ -2,10 +2,10 @@ import math
 import random 
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
-import numpy as np
+plt.style.use('ggplot')
 
 """
-Represents a single data point to be clustered 
+Represents a single data point to be clustered
 """
 class DataPoint: 
     def __init__(self, ticker, percent, volatility): 
@@ -50,12 +50,11 @@ class kMeansClusterer:
         self.set_standard_deviations()
         # Find the z-scores for percent and volatility (scales the features)
         self.set_point_zScores()
-        # Use scaling and remove outliers 
-        self.use_scaling() 
-        self.remove_outliers()              
+        # Use z-score scaling 
+        self.use_scaling()                  
         # Choose centers
-        self.initialize_centers_random()
-        #self.initialize_centers_with_data()
+        #self.initialize_centers_random()
+        self.initialize_centers_with_data()
         
         
     """
@@ -66,15 +65,15 @@ class kMeansClusterer:
         for data_point in self.training_data: 
             data_point.percent = data_point.p_zScore
             data_point.volatility = data_point.v_zScore
-                    
+                   
                     
     """
-    Removes outliers from training data
+    Removes outliers from training data (ended up not using this)
     """
     def remove_outliers(self): 
         new_data = []
         for data_point in self.training_data: 
-            if data_point.percent < 6: 
+            if data_point.percent < 30: 
                 new_data.append(data_point)
         self.training_data = new_data
             
@@ -172,7 +171,7 @@ class kMeansClusterer:
             
     
     """
-    Assignes a single data point to the closes cluster in the list of clusters
+    Assignes a single data point to the closest cluster in the list of clusters
     """
     def assign_to_cluster(self, data_point): 
         # Look at the distance to each cluster center and keep track of minimum 
@@ -207,22 +206,22 @@ class kMeansClusterer:
         counts = [0 for x in range(0, len(self.centers))]                
         # Find sums 
         for data_point in self.training_data: 
-            percent_sums[data_point.cluster] += data_point.percent # HERE !!!
-            volatility_sums[data_point.cluster] += data_point.volatility # HERE !!!
+            percent_sums[data_point.cluster] += data_point.percent 
+            volatility_sums[data_point.cluster] += data_point.volatility 
             counts[data_point.cluster] += 1
         # Find means and readjust centers 
         for cluster_number in range(0, len(self.centers)):             
             if counts[cluster_number] != 0:
-                percent_mean = percent_sums[cluster_number] / counts[cluster_number] # HERE !!!
-                volatility_mean = volatility_sums[cluster_number] / counts[cluster_number] # HERE !!!
+                percent_mean = percent_sums[cluster_number] / counts[cluster_number] 
+                volatility_mean = volatility_sums[cluster_number] / counts[cluster_number] 
                 # Check for centroid convergence 
                 if self.centers[cluster_number].percent == percent_mean and \
-                    self.centers[cluster_number].volatility == volatility_mean: # HERE !!!
+                    self.centers[cluster_number].volatility == volatility_mean: 
                     done_clustering = True 
                 else: 
                     done_clustering = False
-                    self.centers[cluster_number].percent = percent_mean  # HERE !!!
-                    self.centers[cluster_number].volatility = volatility_mean # HERE !!!
+                    self.centers[cluster_number].percent = percent_mean  
+                    self.centers[cluster_number].volatility = volatility_mean 
         return done_clustering 
       
             
@@ -247,40 +246,50 @@ class kMeansClusterer:
                 
     """
     Displays clusters on a scatterplot using matplot lib 
-    MAKE THIS CONVERT BACK FROM Z_SCORE VALUE
+    Displays axes in terms of non-scaled percent and volatility
     """
     def display_clusters(self): 
-        colors = ["green", "blue", "red", "orange", "purple", "pink", "grey", "yellow", "brown", "violet"] 
+        plt.figure(figsize=(13, 7))
+        colors = ["#fc543a", "#6fa8dc", "#93c47d", "#ff9566", "#ffd966", "pink", "grey", "yellow", "brown", "violet"] 
         clusters = {} # Key = cluster number, Value = list of DataPoints in cluster 
         for data_point in self.training_data: 
             # Store points in each cluster 
             if data_point.cluster not in clusters: 
                 clusters[data_point.cluster] = []
             clusters[data_point.cluster].append(data_point)
+            
+        # Plot each cluster
         for cluster in clusters: 
             data_points = clusters[cluster]
             percents = []
             volatilities = []
             for data_point in data_points: 
-                percents.append(data_point.percent)
-                volatilities.append(data_point.volatility)
-            plt.scatter(percents, volatilities, color=colors[cluster], alpha = 0.5)
-            
+                # Convert features back back to original unscaled values
+                percents.append(100*((data_point.percent * self.percentSD) + self.percentMean))
+                volatilities.append((data_point.volatility * self.volatilitySD) + self.volatilityMean)            
+            plt.scatter(percents, volatilities, color=colors[cluster], alpha = 0.8)
+         
+        # Plot the centroids
         center_percents = []
         center_volatilites = []
         for center in self.centers: 
-            center_percents.append(center.percent)
-            center_volatilites.append(center.volatility)
-        plt.xlabel('Percent Gain')
-        plt.ylabel('Volatility')
-        plt.title('k-Means Cluster Analysis Results')
-        plt.scatter(center_percents, center_volatilites, color = "black", marker="^")
-        #legend_elements = [Line2D([0], [0], marker='o', color='w', label='Cluster {}'.format(i), markerfacecolor=colors[i], markersize=5) \
-            #for i in range(0, self.k)]
-        #plt.legend(handles=legend_elements, loc="upper right")
+            # Convert features back to original unscaled values
+            center_percents.append(100*((center.percent * self.percentSD) + self.percentMean))
+            center_volatilites.append((center.volatility * self.volatilitySD) + self.volatilityMean)
+        plt.scatter(center_percents, center_volatilites, color = "black", marker="x")    
+        
+        # Label graph
+        plt.xlabel('Percent Gain', fontsize=15)
+        plt.ylabel('Volatility', fontsize=15)
+        plt.title('k-Means Cluster Analysis Results\n', loc='left', fontsize=22)
+        
+        # Add a legend
+        legend_elements = [Line2D([0], [0], marker='o', color='w', label='Cluster {}'.format(i+1), 
+        markerfacecolor=colors[i], markersize=10) for i in range(0, self.k)]
+        plt.legend(handles=legend_elements, loc='upper right',  prop={'size':15})      
         plt.show()
-    
-    
+        
+        
     """
     Returns a hash map representing all clusters: 
           Key = cluster number
@@ -294,11 +303,50 @@ class kMeansClusterer:
         return clusters
             
             
+    """
+    Writes the tickers in each cluster to a file (so it can be stored and analyzed)
+    Displays a bar graph representing the number of DataPoints in each cluster
+    """
+    def show_cluster_points(self): 
+        self.get_clusters() # Get data points in each cluster 
+        # Write each ticker to the file
+        out_file = open("resulting_clusters.txt", "w")
+        for cluster_num in self.clusters.keys(): 
+            data_points = self.clusters[cluster_num]
+            to_write = "CLUSTER: " + str(cluster_num + 1) + "\n"
+            for data_point in data_points: 
+                to_write += data_point.ticker + "\n"            
+            out_file.write(to_write)
+        
+        # Create a bar graph to show how many points are in each cluster
+        cluster_nums = []
+        cluster_counts = []
+        for cluster_num in range(0, self.k): 
+            count = len(self.clusters[cluster_num])
+            c_num = cluster_num + 1
+            cluster_nums.append("Cluster " + str(c_num))
+            cluster_counts.append(count)
+        plt.figure(figsize = (10, 5))
+        plt.bar(cluster_nums, cluster_counts, width = 0.4, color = ["#fc543a", "#6fa8dc", "#93c47d", "#ff9566"], alpha=0.5) 
+        for i in range(len(cluster_nums)): 
+            plt.text(i, cluster_counts[i], cluster_counts[i])
+        plt.xlabel("Cluster")
+        plt.ylabel("Number of Stocks in Cluster")
+        plt.title("Number of Stocks in Each Cluster") 
+        plt.show()
+
+        
 # Runs k-means given the number of clusters and the stock data file      
 def main(): 
-    my_clusterer = kMeansClusterer(3, "data2021.txt")
+    # Our Final Model Setup: 
+    # Seed choice: random data points 
+    # K = 4
+    # Feature scaling: z-score
+    # No removal of outliers 
+    my_clusterer = kMeansClusterer(4, "newData.txt")
     my_clusterer.cluster()
     my_clusterer.display_clusters()
+    my_clusterer.show_cluster_points()
         
 if __name__ == "__main__":    
     main()
