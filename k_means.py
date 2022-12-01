@@ -176,7 +176,7 @@ class Clusterer:
                 #print(str(cluster_number) + " " + str(percent_mean) + " " + str(volatility_mean))
                 if self.centers[cluster_number].percent == percent_mean and \
                     self.centers[cluster_number].volatility == volatility_mean: 
-                    done_clustering = True 
+                    done_clustering = done_clustering 
                 else: 
                     done_clustering = False
                     self.centers[cluster_number].percent = percent_mean 
@@ -227,7 +227,7 @@ class Clusterer:
 
 
 def main(): 
-    my_clusterer = Clusterer(7, "testfile.txt")
+    my_clusterer = Clusterer(6, "newData.txt")
     my_clusterer.initialize_centers()   
     my_clusterer.cluster()
 
@@ -275,7 +275,7 @@ def main():
 
 
 
-    my_clusterer.cluster()
+    # my_clusterer.cluster()
     
 if __name__ == "__main__":    
     main()
